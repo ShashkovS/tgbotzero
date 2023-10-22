@@ -1,0 +1,11 @@
+## Install dev-dependencies
+# pip install -r requirements-dev.txt
+## Make an editable install of the package
+# python -m pip install --editable . --upgrade
+
+# telebot
+pyTelegramBotAPI
+coverage
+pytest
+wheel
+twine
