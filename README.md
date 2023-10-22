@@ -24,7 +24,7 @@ def on_message(msg: str):
     return "Твоё сообщение: " + msg
 ```
 
-<img alt="echobot" src="docs/echobot.png" width="417">
+<img alt="echobot" src="https://github.com/ShashkovS/tgbotzero/raw/main/docs/echobot.png" width="417">
 
 
 ### Бот с кнопками:
@@ -46,7 +46,7 @@ def on_button_btn(data):
 run_bot()
 ```
 
-<img alt="echobot" src="docs/buttonbot.png" width="600">
+<img alt="echobot" src="https://github.com/ShashkovS/tgbotzero/raw/main/docs/buttonbot.png" width="600">
 
 
 # Установка
