@@ -13,13 +13,12 @@
 
 ## Примеры
 
-Бот, показывающий твоё сообщение:
+### Бот, показывающий твоё сообщение:
 
 ``` python
 import tgbotzero
 
 TOKEN = '123123123:tokenFromBotFatherInTelegram'
-
 
 def on_message(msg: str):
     return "Твоё сообщение: " + msg
@@ -28,7 +27,29 @@ def on_message(msg: str):
 <img alt="echobot" src="docs/echobot.png" width="417">
 
 
-# Установаа
+### Бот с кнопками:
+
+``` python
+from tgbotzero import *
+
+TOKEN = '123:tokenHereFromBotFatherInTelegram'
+
+def on_message(msg: str):
+    return [
+        "Твоё сообщение: " + msg,
+        Button('Кнопка', 'btn'),
+    ]
+
+def on_button_btn(data):
+    return 'Нажата кнопка. Отправьте любое сообщение для продолжения'
+
+run_bot()
+```
+
+<img alt="echobot" src="docs/buttonbot.png" width="600">
+
+
+# Установка
 
 Введите в терминале:
 ```shell
