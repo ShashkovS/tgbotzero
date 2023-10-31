@@ -4,8 +4,10 @@ import atexit
 import traceback
 import types
 import json
+import re
 from typing import Union, Tuple, Optional
 
+import requests
 import telebot
 import telebot.types
 
@@ -64,6 +66,41 @@ def print_bot_info(bot: telebot.TeleBot):
     print('Бот ждёт: https://t.me/' + bot_name)
 
 
+@bot.message_handler(regexp="^/")
+def handle_all_commands(message: telebot.types.Message):
+    cmd = re.search(r'(?<=\/)[a-zA-Z_]*', message.text).group()
+    if cmd == 'start':
+        try:
+            set_chat_commands(bot.token, bot.commands, message.from_user.id)
+        except:
+            pass
+    command_function_name = f'on_command_{cmd}'
+    command_function = getattr(main_module, command_function_name, None)
+    if not command_function and cmd == 'start':
+        command_function = default_on_start
+    raise_exc = None
+    if not command_function:
+        answer = (f"Необходимо определить функцию {command_function_name}. Например:\n"
+                  f"def {command_function_name}(cmd: str):\n"
+                  f"    return 'Выполнена команда {cmd}, данные: ' + repr(cmd)\n")
+        raise_exc = ValueError(answer)
+    else:
+        try:
+            answer = command_function(message.text)
+        except Exception as e:
+            answer = f'Возникла ошибка:\n{traceback.format_exc()}'
+            raise_exc = e
+
+    cmd, reply_markup = response_to_text_and_buttons(answer)
+    bot.send_message(message.from_user.id, cmd, reply_markup=reply_markup)
+    if raise_exc:
+        raise raise_exc
+
+
+def default_on_start(cmd: str):
+    return 'Начинаем!'
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def callback_handler(callback_obj: telebot.types.CallbackQuery):
     name, data = callback_obj.data.split(";", maxsplit=1)
@@ -93,6 +130,30 @@ def callback_handler(callback_obj: telebot.types.CallbackQuery):
         raise raise_exc
 
 
+def set_chat_commands(token, commands, chat_id):
+    method_url = f"https://api.telegram.org/bot{token}/setMyCommands"
+    payload = {
+        "commands": commands,
+        "scope": {
+            "type": "chat",
+            "chat_id": chat_id
+        }
+    }
+    response = requests.post(method_url, json=payload)
+
+
+def find_command_handlers(main_module):
+    commands = []
+    for attr_name in dir(main_module):
+        if attr_name.startswith('on_command_'):
+            attr = getattr(main_module, attr_name)
+            if callable(attr):
+                command = attr_name[len('on_command_'):]
+                description = attr.__doc__ or command
+                commands.append({"command": command, "description": description})
+    return commands
+
+
 def run_bot():
     global already_started
     if already_started:
@@ -106,14 +167,21 @@ def run_bot():
     set_up_on_text_message(bot, main_module)
     set_up_default_handler(bot, main_module)
     check_on_button_functions(main_module)
+    bot.commands = find_command_handlers(main_module)
 
     # Now we start polling
     print_bot_info(bot)
     bot.infinity_polling()
 
 
+def check_run_bot():
+    if already_started:
+        return
+    raise ValueError('Необходимо добавить функцию run_bot() в конец кода для запуска бота')
+
+
 if __name__ == '__main__':
     print('Модуль должен быть импортирован:\nfrom tgbotzero import *')
     sys.exit()
 
-atexit.register(run_bot)
+atexit.register(check_run_bot)

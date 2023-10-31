@@ -4,4 +4,7 @@ TOKEN = '123:tokenHereFromBotFatherInTelegram'
 
 
 def on_message(msg: str):
-    return "Твоё сообщение: " + msg
+    return f"Все говорят «{msg}», а ты купи слона!"
+
+
+run_bot()
