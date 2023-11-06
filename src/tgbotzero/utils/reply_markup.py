@@ -28,15 +28,3 @@ def to_reply_markup(buttons: list[Button]) -> Optional[telebot.types.InlineKeybo
     else:
         reply_markup = None
     return reply_markup
-
-
-def response_to_text_and_buttons(response: Union[str, Button, list[Union[str, Button]]]) -> Tuple[str, Optional[telebot.types.InlineKeyboardMarkup]]:
-    if type(response) == str:
-        return response, None
-    if type(response) == Button:
-        return 'Кнопки:', to_reply_markup([response])
-    if isinstance(response, (list, tuple)):
-        texts = '\n'.join(obj for obj in response if type(obj) == str)
-        buttons = [obj for obj in response if type(obj) == Button]
-        return texts, to_reply_markup(buttons)
-    raise ValueError('Функция должна возвращать только строки и кнопки (Button)')

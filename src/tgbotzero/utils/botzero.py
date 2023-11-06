@@ -12,7 +12,9 @@ import telebot
 import telebot.types
 
 from tgbotzero.utils.help import help
-from tgbotzero.utils.reply_markup import Button, response_to_text_and_buttons
+from tgbotzero.utils.images import Image
+from tgbotzero.utils.reply_markup import Button
+from tgbotzero.utils.send_answer import send_answer
 from tgbotzero.utils.check_on_button_functions import check_on_button_functions
 
 bot = telebot.TeleBot('123:tokenHereFromBotFatherInTelegram')
@@ -49,8 +51,7 @@ def set_up_on_text_message(bot: telebot.TeleBot, main_module: types.ModuleType):
         except Exception as e:
             bot.send_message(message.from_user.id, f'Возникла ошибка:\n{traceback.format_exc()}')
             raise
-        text, reply_markup = response_to_text_and_buttons(answer)
-        bot.send_message(message.from_user.id, text, reply_markup=reply_markup)
+        send_answer(bot, message.from_user.id, answer)
 
     bot.message_handler(content_types=['text'])(on_text_message)
 
@@ -90,9 +91,7 @@ def handle_all_commands(message: telebot.types.Message):
         except Exception as e:
             answer = f'Возникла ошибка:\n{traceback.format_exc()}'
             raise_exc = e
-
-    cmd, reply_markup = response_to_text_and_buttons(answer)
-    bot.send_message(message.from_user.id, cmd, reply_markup=reply_markup)
+    send_answer(bot, message.from_user.id, answer)
     if raise_exc:
         raise raise_exc
 
@@ -123,8 +122,7 @@ def callback_handler(callback_obj: telebot.types.CallbackQuery):
     bot.edit_message_reply_markup(chat_id=callback_obj.message.chat.id,
                                   message_id=callback_obj.message.message_id,
                                   reply_markup=None)
-    text, reply_markup = response_to_text_and_buttons(answer)
-    bot.send_message(callback_obj.from_user.id, text, reply_markup=reply_markup)
+    raise_exc = send_answer(bot, callback_obj.from_user.id, answer) or raise_exc
     bot.answer_callback_query(callback_query_id=callback_obj.id)
     if raise_exc:
         raise raise_exc
