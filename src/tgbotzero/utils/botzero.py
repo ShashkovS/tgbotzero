@@ -5,14 +5,16 @@ import traceback
 import types
 import json
 import re
+from io import BytesIO
 from typing import Union, Tuple, Optional
 
+import PIL.Image
 import requests
 import telebot
 import telebot.types
 
 from tgbotzero.utils.help import help
-from tgbotzero.utils.images import Image
+from tgbotzero.utils.images import Image, _image_manager
 from tgbotzero.utils.reply_markup import Button
 from tgbotzero.utils.send_answer import send_answer
 from tgbotzero.utils.check_on_button_functions import check_on_button_functions
@@ -54,6 +56,32 @@ def set_up_on_text_message(bot: telebot.TeleBot, main_module: types.ModuleType):
         send_answer(bot, message.from_user.id, answer)
 
     bot.message_handler(content_types=['text'])(on_text_message)
+
+
+def set_up_on_image_message(bot: telebot.TeleBot, main_module: types.ModuleType):
+    on_image = getattr(main_module, "on_image", None)
+    if not on_image:
+        def on_image_message(message: telebot.types.Message):
+            text = ('Необходимо определить функцию on_image. Например, так:'
+                    'def on_image(msg: txt, img: Image):'
+                    '    return ["Твоё фото", img]')
+            bot.send_message(message.from_user.id, text)
+            raise ValueError(text)
+    else:
+        def on_image_message(message: telebot.types.Message):
+            try:
+                file_id = message.photo[-1].file_id
+                file_info = bot.get_file(file_id)
+                downloaded_file = bot.download_file(file_info.file_path)
+                image = Image(downloaded_file)
+                _image_manager[image] = file_id
+                answer = on_image(message.caption or '', image)
+            except Exception as e:
+                bot.send_message(message.from_user.id, f'Возникла ошибка:\n{traceback.format_exc()}')
+                raise
+            send_answer(bot, message.from_user.id, answer)
+
+    bot.message_handler(content_types=['photo'])(on_image_message)
 
 
 def set_up_default_handler(bot: telebot.TeleBot, main_module: types.ModuleType):
@@ -163,6 +191,7 @@ def run_bot():
 
     set_up_token(bot, main_module)
     set_up_on_text_message(bot, main_module)
+    set_up_on_image_message(bot, main_module)
     set_up_default_handler(bot, main_module)
     check_on_button_functions(main_module)
     bot.commands = find_command_handlers(main_module)

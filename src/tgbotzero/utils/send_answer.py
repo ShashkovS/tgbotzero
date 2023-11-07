@@ -36,7 +36,7 @@ def send_answer(
 
     if len(images) > 1:
         media = [
-            telebot.types.InputMediaPhoto(_image_manager[image] or image.io)
+            telebot.types.InputMediaPhoto(_image_manager[image] or image._io)
             for image in images
         ]
         megia_message = bot.send_media_group(chat_id, media=media)
@@ -46,7 +46,7 @@ def send_answer(
         bot.send_message(chat_id, text, reply_markup=reply_markup)
     elif len(images) == 1:
         image = images[0]
-        photo = _image_manager[image] or image.io
+        photo = _image_manager[image] or image._io
         message = bot.send_photo(chat_id, photo=photo, caption=text, reply_markup=reply_markup)
         file_id = message.photo[-1].file_id  # photo is an array of different sizes; [-1] gets the largest.
         _image_manager[images[0]] = file_id

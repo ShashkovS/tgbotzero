@@ -7,9 +7,9 @@
 </p>
 
 # TgBotZero
+
 Телеграм-боты в пару строчек кода.
 Простые телеграм-боты должно быть очень просто делать!
-
 
 ## Примеры
 
@@ -25,7 +25,6 @@ def on_message(msg: str):
 ```
 
 <img alt="echobot" src="https://github.com/ShashkovS/tgbotzero/raw/main/docs/echobot.png" width="417">
-
 
 ### Бот с кнопками:
 
@@ -47,8 +46,6 @@ run_bot()
 ```
 
 <img alt="echobot" src="https://github.com/ShashkovS/tgbotzero/raw/main/docs/buttonbot.png" width="600">
-
-
 
 ### Бот с командами:
 
@@ -90,6 +87,7 @@ def on_command_minus(cmd: str):
 run_bot()
 ```
 
+<img alt="commands" src="docs/commands.png" width="345">
 
 ### Бот с картинками:
 
@@ -107,24 +105,49 @@ def on_message(msg: str):
         Button('Класс!', 'btn')
     ]
 
+
 def on_button_btn(data):
     return 'Ага!'
 
+
 run_bot()
 ```
+<img alt="commands" src="docs/gallery.png" width="659">
+
+### Обработка и модификация картинок:
+
+```python
+from tgbotzero import *
+
+TOKEN = '123:tokenHereFromBotFatherInTelegram'
+
+
+def on_message(msg: str):
+    return 'Жду картинку с подписью!'
+
+
+def on_image(msg: str, img: Image):
+    return img.put_text(msg, (255, 0, 0))
+
+
+run_bot()
+```
+<img alt="commands" src="docs/puttext.png" width="323">
+
 
 # Установка
 
 Введите в терминале:
+
 ```shell
 pip install tgbotzero --upgrade --user
 ```
-
 
 Или запустите эту программу:
 
 ```python
 import os, sys
+
 python = sys.executable
 user = '--user' if 'venv' not in python and 'envs' not in python else ''
 cmd = f'"{python}" -m pip install tgbotzero --upgrade {user}'
