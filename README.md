@@ -87,7 +87,7 @@ def on_command_minus(cmd: str):
 run_bot()
 ```
 
-<img alt="commands" src="docs/commands.png" width="345">
+<img alt="commands" src="https://github.com/ShashkovS/tgbotzero/blob/main/docs/commands.png?raw=true" width="345">
 
 ### Бот с картинками:
 
@@ -112,7 +112,7 @@ def on_button_btn(data):
 
 run_bot()
 ```
-<img alt="commands" src="docs/gallery.png" width="659">
+<img alt="gallery" src="https://github.com/ShashkovS/tgbotzero/blob/main/docs/gallery.png?raw=true" width="659">
 
 ### Обработка и модификация картинок:
 
@@ -132,7 +132,7 @@ def on_image(msg: str, img: Image):
 
 run_bot()
 ```
-<img alt="commands" src="docs/puttext.png" width="323">
+<img alt="puttext" src="https://github.com/ShashkovS/tgbotzero/blob/main/docs/puttext.png?raw=true" width="323">
 
 
 # Установка
