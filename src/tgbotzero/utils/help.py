@@ -6,7 +6,7 @@ def help():
 from tgbotzero import *
 
 # Токен нужно получить у https://t.me/BotFather
-TOKEN = '123:tokenFromBotFather'
+TOKEN = '123:123:tokenHereFromBotFatherInTelegram'
 
 # Функция on_message принимает на вход строку с сообщением 
 # и должна вернуть строку с ответом 

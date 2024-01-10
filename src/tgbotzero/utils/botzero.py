@@ -1,3 +1,4 @@
+import inspect
 import os
 import sys
 import atexit
@@ -34,7 +35,7 @@ def set_up_token(bot: telebot.TeleBot, main_module: types.ModuleType):
         token = os.environ.get('TOKEN', None)
     if not token:
         help()
-        raise ValueError('Необходимо в переменную TOKEN записать токен телеграм-бота. Как-то так: '
+        raise ValueError('Необходимо в переменную TOKEN записать токен телеграм-бота (от BotFather). Как-то так: '
                          'TOKEN = "123123123:abcabcabcabcabcabcabcabcabc"')
     bot.token = token
 
@@ -46,10 +47,20 @@ def set_up_on_text_message(bot: telebot.TeleBot, main_module: types.ModuleType):
         raise ValueError('Необходимо определить функцию on_message. Например, так:'
                          'def on_message(msg: str):'
                          '    return "Твоё сообщение: " + msg')
+    signature = inspect.signature(on_message)
+    num_parms = len(signature.parameters)
 
     def on_text_message(message: telebot.types.Message):
+        if num_parms == 0:
+            args = tuple()
+        elif num_parms == 1:
+            args = (message.text,)
+        elif num_parms == 2:
+            args = (message.text, message.chat.id)
+        else:
+            raise ValueError('Функция on_message не должна иметь больше двух параметров')
         try:
-            answer = on_message(message.text)
+            answer = on_message(*args)
         except Exception as e:
             bot.send_message(message.from_user.id, f'Возникла ошибка:\n{traceback.format_exc()}')
             raise
@@ -68,6 +79,9 @@ def set_up_on_image_message(bot: telebot.TeleBot, main_module: types.ModuleType)
             bot.send_message(message.from_user.id, text)
             raise ValueError(text)
     else:
+        signature = inspect.signature(on_image)
+        num_parms = len(signature.parameters)
+
         def on_image_message(message: telebot.types.Message):
             try:
                 file_id = message.photo[-1].file_id
@@ -75,7 +89,13 @@ def set_up_on_image_message(bot: telebot.TeleBot, main_module: types.ModuleType)
                 downloaded_file = bot.download_file(file_info.file_path)
                 image = Image(downloaded_file)
                 _image_manager[image] = file_id
-                answer = on_image(message.caption or '', image)
+                if num_parms == 2:
+                    args = (message.caption or '', image)
+                elif num_parms == 3:
+                    args = (message.caption or '', image, message.chat.id)
+                else:
+                    raise ValueError(f'Функция {on_image.__name__} не должна иметь два или три параметра')
+                answer = on_image(*args)
             except Exception as e:
                 bot.send_message(message.from_user.id, f'Возникла ошибка:\n{traceback.format_exc()}')
                 raise
@@ -89,8 +109,11 @@ def set_up_default_handler(bot: telebot.TeleBot, main_module: types.ModuleType):
 
 
 def print_bot_info(bot: telebot.TeleBot):
-    bot_info = bot.get_me()
-    bot_name = bot_info.username
+    try:
+        bot_info = bot.get_me()
+        bot_name = bot_info.username
+    except telebot.apihelper.ApiTelegramException as e:
+        raise ValueError(f'Кажется, токен {bot.token} неправильный.')
 
     print('Бот ждёт: https://t.me/' + bot_name)
 
@@ -114,8 +137,19 @@ def handle_all_commands(message: telebot.types.Message):
                   f"    return 'Выполнена команда {cmd}, данные: ' + repr(cmd)\n")
         raise_exc = ValueError(answer)
     else:
+        signature = inspect.signature(command_function)
+        num_parms = len(signature.parameters)
+        if num_parms == 0:
+            args = tuple()
+        elif num_parms == 1:
+            args = (message.text,)
+        elif num_parms == 2:
+            args = (message.text, message.chat.id)
+        else:
+            raise ValueError(f'Функция {command_function.__name__} не должна иметь больше двух параметров')
+
         try:
-            answer = command_function(message.text)
+            answer = command_function(*args)
         except Exception as e:
             answer = f'Возникла ошибка:\n{traceback.format_exc()}'
             raise_exc = e
@@ -141,8 +175,19 @@ def callback_handler(callback_obj: telebot.types.CallbackQuery):
                   f"    return 'Нажата кнопка {name}, данные: ' + repr(data)\n")
         raise_exc = ValueError(answer)
     else:
+        signature = inspect.signature(callback_function)
+        num_parms = len(signature.parameters)
+        if num_parms == 0:
+            args = tuple()
+        elif num_parms == 1:
+            args = (data,)
+        elif num_parms == 2:
+            args = (data, callback_obj.message.chat.id)
+        else:
+            raise ValueError(f'Функция {callback_function.__name__} не должна иметь больше двух параметров')
+
         try:
-            answer = callback_function(data)
+            answer = callback_function(*args)
         except Exception as e:
             answer = f'Возникла ошибка:\n{traceback.format_exc()}'
             raise_exc = e
@@ -204,7 +249,7 @@ def run_bot():
 def check_run_bot():
     if already_started:
         return
-    raise ValueError('Необходимо добавить функцию run_bot() в конец кода для запуска бота')
+    raise ValueError('Необходимо добавить вызов функции run_bot() в самый конец кода для запуска бота')
 
 
 if __name__ == '__main__':

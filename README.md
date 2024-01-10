@@ -23,7 +23,7 @@
 ``` python
 import tgbotzero
 
-TOKEN = '123123123:tokenFromBotFatherInTelegram'
+TOKEN = '123:tokenHereFromBotFatherInTelegram'
 
 def on_message(msg: str):
     return "Твоё сообщение: " + msg
@@ -167,6 +167,26 @@ def on_image(msg: str, img: Image):
 run_bot()
 ```
 <img alt="puttext" src="https://github.com/ShashkovS/tgbotzero/blob/main/docs/puttext.png?raw=true" width="323">
+
+
+
+
+### Получение chat_id:
+
+К любой функции-обработчику можно добавить ещё один параметр `chat_id: int`, если хочется различать пользователей.
+
+```python
+from tgbotzero import *
+
+TOKEN = '123:tokenHereFromBotFatherInTelegram'
+
+
+def on_message(msg: str, chat_id: int):
+    return f"Текущий chat id: {chat_id}"
+
+
+run_bot()
+```
 
 
 
